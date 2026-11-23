@@ -1,19 +1,28 @@
-
 const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
 const db = require("./db");
+
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const isProduction = process.env.NODE_ENV === "production";
+
+// Recognize HTTPS connections forwarded by Render.
+if (isProduction) {
+    app.set("trust proxy", 1);
+}
+
 app.use(cors({
-  origin: [
-  "http://localhost:5173",
-  "http://127.0.0.1:5173"
-],
-  credentials: true
+    origin: [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+    ],
+    credentials: true
 }));
+
 app.use(express.json());
+
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
@@ -21,9 +30,10 @@ app.use(session({
     cookie: {
         httpOnly: true,
         sameSite: "lax",
-        secure: false
+        secure: isProduction
     }
 }));
+
 
 // Test route
 app.get("/api/health", (req, res) => {
